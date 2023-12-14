@@ -1,6 +1,4 @@
 import scrapy
-import scrapy
-from urllib.parse import urlencode
 from spider_steam.items import SpiderSteamItem
 import requests
 from bs4 import BeautifulSoup
