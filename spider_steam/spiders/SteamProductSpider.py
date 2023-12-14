@@ -9,7 +9,9 @@ def do_start_urls():
     queries = ['indie', 'strategy', 'minecraft']
     for query in queries:
         for i in range(1, 3):
-            url = 'https://store.steampowered.com/search/?term=' + str(query) + '&ignore_preferences=1&page=' + str(i)
+            url = ('https://store.steampowered.com/search/?sort_by=&sort_order=0&term=' + str(query) +
+                   '&supportedlang=english&page=' + str(i))
+
             start_urls.append(url)
     return start_urls
 
