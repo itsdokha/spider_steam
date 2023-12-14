@@ -42,7 +42,7 @@ class SteamProductSpider(scrapy.Spider):
             product_price = response.xpath('//div[@class="game_purchase_price price"]/text()').extract()
         product_platforms = response.css('div').xpath('@data-os')
 
-        if product_name != '':
+        if len(product_name) != 0 and product_release_date[-1] > '2000':
             items['product_name'] = ''.join(product_name).strip().replace('™', '')
             items['product_category'] = ', '.join(product_category).strip()
             items['product_reviews_num'] = ', '.join(x.strip() for x in product_reviews_num).strip().replace('(',
@@ -53,4 +53,4 @@ class SteamProductSpider(scrapy.Spider):
             items['product_tags'] = ', '.join(x.strip() for x in product_tags).strip()
             items['product_price'] = ''.join(product_price).strip().replace('уб', '')
             items['product_platforms'] = ' '.join(x.get().strip() for x in product_platforms)
-        yield items
+            yield items
