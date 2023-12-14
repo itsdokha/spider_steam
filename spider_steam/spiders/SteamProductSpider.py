@@ -4,21 +4,23 @@ import requests
 from bs4 import BeautifulSoup
 
 
+def do_start_urls():
+    start_urls = []
+    queries = ['indie', 'strategy', 'minecraft']
+    for query in queries:
+        for i in range(1, 3):
+            url = 'https://store.steampowered.com/search/?term=' + str(query) + '&ignore_preferences=1&page=' + str(i)
+            start_urls.append(url)
+    return start_urls
+
+
 class SteamProductSpider(scrapy.Spider):
     name = "SteamProductSpider"
     allowed_domains = ["store.steampowered.com"]
-    start_urls = [
-        'https://store.steampowered.com/search/?g=n&SearchText=Sandbox&page=1',
-        'https://store.steampowered.com/search/?g=n&SearchText=Sandboxpage=2',
-        'https://store.steampowered.com/search/?g=n&SearchText=Simulation&page=1',
-        'https://store.steampowered.com/search/?g=n&SearchText=Simulation&page=2',
-        'https://store.steampowered.com/search/?g=n&SearchText=RPG&page=1',
-        'https://store.steampowered.com/search/?g=n&SearchText=RPG&page=2']
-        
-    
+    start_urls = do_start_urls()
+
     def start_requests(self):
         for url in self.start_urls:
-            # yield scrapy.Request(url=get_url(url), callback=self.parse_for_page)
             yield scrapy.Request(url=url, callback=self.parse_for_page)
 
     def parse_for_page(self, response):
@@ -26,7 +28,6 @@ class SteamProductSpider(scrapy.Spider):
         for link in games:
             if 'agecheck' not in link:
                 yield scrapy.Request(link, callback=self.parse_for_game)
-                
 
     def parse_for_game(self, response):
         items = SpiderSteamItem()
@@ -36,13 +37,17 @@ class SteamProductSpider(scrapy.Spider):
         product_release_date = response.xpath('//div[@class="date"]/text()').extract()
         product_developer = response.xpath('//div[@id="developers_list"]/a/text()').extract()
         product_tags = response.xpath('//a[@class="app_tag"]/text()').extract()
-        product_price = response.xpath('//div[@class="game_purchase_price price"]/text()')[0].extract()
+        product_price = response.xpath('//div[@class="discount_final_price"]/text()').extract()
+        if len(product_price) == 0:
+            product_price = response.xpath('//div[@class="game_purchase_price price"]/text()').extract()
         product_platforms = response.css('div').xpath('@data-os')
 
-        if product_name != '' and product_release_date[-1] > '2000':
+        if product_name != '':
             items['product_name'] = ''.join(product_name).strip().replace('™', '')
             items['product_category'] = ', '.join(product_category).strip()
-            items['product_reviews_num'] = ', '.join(x.strip() for x in product_reviews_num).strip().replace('(', '').replace(')', '')
+            items['product_reviews_num'] = ', '.join(x.strip() for x in product_reviews_num).strip().replace('(',
+                                                                                                             '').replace(
+                ')', '')
             items['product_release_date'] = ''.join(product_release_date).strip()
             items['product_developer'] = ', '.join(x.strip() for x in product_developer).strip()
             items['product_tags'] = ', '.join(x.strip() for x in product_tags).strip()
